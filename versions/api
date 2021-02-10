@@ -1,0 +1,64 @@
+Для всех запросов в headers передаем token
+Authbarier: то что возвращает getIdentityToken()
+
+1. GET /addons/
+    response:
+        profile = {
+            'level' : 0,
+            'stats' : {},
+            'tests' : {},
+            'error' : 'message' (если пустое ошибки нет)
+        }
+
+2. GET /templates/
+    response:
+        data = [
+            {
+                'title' : ..., // Вот это для отображения в списке
+                'subject' : ...,
+                'body' : ...
+            },
+            ...
+            {}
+        ]
+
+3. POST /templates/
+    request:
+        data = {
+            'uid' : unique_id
+            'title': ..
+            'subject': ..
+            'body': ..
+        }
+    response:
+        OK, ERROR
+
+5. GET /sequences/
+    response:
+        data = [
+            {
+                'uid' : sequence_id,
+                'title' : ...
+            },
+            ...
+            {}
+        ]
+
+6. POST /sequences/
+    request:
+        data = {
+            'uid' : unique_id
+            'title': ..,
+            'templates': [{..}, {..}]
+        }
+    response:
+        OK, ERROR
+
+ 7. POST /test/
+    request:
+        data = {
+            'from' : email,
+            'links': [....]
+        }
+    response:
+        OK, ERROR

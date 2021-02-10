@@ -1,0 +1,12 @@
+/usr/local/kafka
+/usr/local/kafka/plugin (mongo-kafka-connect-1.3.0-all.jar)
+/usr/local/kafka/libs (avro-1.10.0.jar -  https://docs.snowflake.com/en/user-guide/kafka-connector-install.html#installing-the-connector-for-open-source-apache-kafka)
+
+/etc/mongod.conf
+replication:
+   replSetName: "rs0"
+
+#inside mongo
+rs.initiate() (необходимо инциализировать после доавления в config)
+rs.status()
+rs.printReplicationInfo() (должен показать oplog)

@@ -1,0 +1,136 @@
+1. Перенести и проверить все на api.theclone.me
+2. Сделать интеграцию с close.com:
+    * создание sequences в close.com
+    * Получить статистику сделать отчет
+
+3. Сделать простую статистику по кампании:
+    | отправили | доставили | открыто | ответов | встреч назначено |
+4. Изменение статуса в зависимости от лейбла
+5. Анализ переписок и отправка стратеджисту на анализ
+
+
+Интеграция с close.com
+
+Отправка сообщений:
+- В админке делаем связку: email <-> sequence <-> smartview
+- Задаем расписание:
+    * Time zone
+    * Period отправки
+    * Разогрев
+- Раз в час запускаем дергатель и вызываем close.com по API
+
+
+Создание sequences:
+- На основе sequence в базе создать sequence в close.com
+- Добавить подпись
+
+
+Статистика:
+- Разбивка по: дата, sequence, client
+- Данные:
+    * Emails sent
+    * Emails deliverd
+    * Emails open
+    * Emails reply
+    * Dialogs
+    * Appointments set
+
+Изменение статуса:
+- Забираем labels из gmail: dialog, interested, not interested, contact later, Appointment set
+  * обновляем статус лида в зависимости от лейбла
+
+
+
+1. Список всех контактов, которые подписаны на sequence: /sequence_subscription/
+  * Если один контакт подписан на несколько sequences то отписать от всех кроме одного
+
+2. Список всех лидов со статусом scheduled но без подписки:
+  * Получить список всех лидов - сохранить в базу
+  * Получиать список всех контактов для всех лидов - сохранить в базу
+
+3. Обновить список лидов:
+    * получить список всех lead_id созданных после lead/{?query date_created >
+    * для каждого lead_id получить детали lead/{id}/{?_fields}
+
+
+Сделать сегодня:
+- Получать список всех subscriptions (DONE)
+- Находить дубликаты (DONE)
+- Отписсывать контакт (DONE)
+- Подписывать контакт (запускать subcription)
+- Менять статус  лида
+
+
+Статистика нужна:
+period: from to
+| customer | sent | bounced | delivered | opens | replies | dialogs | not interested | appointments |
+
+| lead segment | bounced | delivered | unique opened | unique replies | dialogs | not interested | appointments |
+
+| sequence | bounced | sent | unique opened | unique replies | dialogs | not interested | appointments |
+
+customer - берем все письма в которых from_email или to_email IN [email'ы клиента] и групируем по thread_id !!!
+sent - кол-во всех писем с direction=outgoing (считаем только письма с НЕ пустым sequence_id, Нам не нужны письма отправленные вручную)
+bounced - кол-во всех писем где from_email = mailer-daemon@googlemail.com
+deliverd - sent - bounced
+opens - кол-во всех писем где len(opens) != 0 (Убрать false opens: https://www.gmass.co/blog/false-opens-in-gmail/  ONLY: via ggpht.com GoogleImageProxy)
+replies - кол-во всех писем где (direction=incoming AND is_autoreply=False AND from_email != mailer-daemon@googlemail.com)
+    * Для каждого email'а считаем REPLY только ОДИН раз (для этого записываем reply в dict)
+    * Храним dict {message_id : sequence} и для отнесения ответа к sequence смотрим вэтот dict
+
+auto_replies - сюда записываеть auto_replies
+dialogs - кол-во лидов со статусом DIALOGS
+not interested - кол-во лидов со статусом NOT INTERESTED
+appointments - кол-во лидов со статусом APPINTMENT
+.... Все остальные статусы также
+
+Выше общий отчет для customer
+Дальше нужна разбивка:
+- lead_segment: это поле lead_segment (он одназначен для Thread'a)
+- sequence: 1 цепочка это один sequence.
+    Если sequences нет - то это уже другая переписка ее маркируем как "After Dialog",
+    Если sequences несколько - то это дубликал (ТАК КАК для разных кастомеров не должны вытаскиваться сообщения)
+- по шаблонам (это поле template_name)
+
+
+На выходе мы идем по "THREADS":
+Для каждого письма добавляем стату в dict =
+{
+    'customer' : {
+        sent: ...
+        bounced: ..
+    },
+    'segments' : {
+        'AO-0' : {sent:.., bounced:..},
+        'AO-1' : ...
+    },
+    'sequences' : {
+        'seg-1' : {},..
+    }
+}
+
+
+Как получаем статистику:
+- пользователь запрашиывает диапазон (от до) date_sent
+- Обнавляем ВСЕ лиды
+- Обновляем ВСЕ show_emails с последнего момента
+
+- Далее строим статистику по клиентам
+ * Загружаем в память все лиды для клиента со статусами { lead_id {} }
+
+- Идем итерацией по thread_id и считаем статистику
+
+
+Статистика для sequence
+
+{
+    'sequence_name' : {
+        'sent' : direction=outgoing
+
+        'templates' : {
+            'template - name' : {
+                'sent' : ...
+            }
+        }
+    }
+}

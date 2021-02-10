@@ -1,0 +1,19 @@
+virtualenv -p python3.7 ./.venv
+source ./.venv/bin/activate
+pip install -r ./requirements.txt
+
+cp -f ./deploy_files/api_theclone_uvicorn.service /etc/systemd/system/
+chown root:root /etc/systemd/system/api_theclone_uvicorn.service
+chmod 755 /etc/systemd/system/api_theclone_uvicorn.service
+sudo systemctl enable api_theclone_uvicorn
+
+cp -f ./deploy_files/api.theclone.me /etc/nginx/sites-available/
+ln -fs /etc/nginx/sites-available/api.theclone.me /etc/nginx/sites-enabled
+
+cp -f ./deploy_files/apidev.theclone.me /etc/nginx/sites-available/
+ln -fs /etc/nginx/sites-available/apidev.theclone.me /etc/nginx/sites-enabled
+
+
+systemctl daemon-reload
+systemctl start api_theclone_uvicorn
+systemctl restart nginx

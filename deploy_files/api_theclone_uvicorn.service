@@ -1,0 +1,17 @@
+[Unit]
+Description=TheClone Uvicorn instance to serve api.theclone.me backend
+After=network.target
+
+[Service]
+User=o24user
+Group=o24user
+WorkingDirectory=/home/o24user/theclone_dev
+Environment="PATH=/home/o24user/theclone_dev/.venv/bin"
+Environment="APP_ENV=Dev"
+StandardOutput=/home/o24user/theclone_logs/uvicorn.logs
+StandardError=/home/o24user/theclone_logs/uvicorn.errors
+ExecStart=/home/o24user/theclone_dev/dev_api_start.sh
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
